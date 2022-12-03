@@ -40,8 +40,8 @@ fn main() {
     // default Icon
     let mut app_icon = AppIcon::Icon2;
 
-    let icon = include_bytes!("../res/icon1.ico");
-    let icon2 = include_bytes!("../res/icon2.ico");
+    let icon = include_bytes!("../res/sun.ico");
+    let icon2 = include_bytes!("../res/moon.ico");
 
     let second_icon = Icon::from_buffer(icon2, None, None).unwrap();
     let first_icon = Icon::from_buffer(icon, None, None).unwrap();
