@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 trayicon = { version = "0.1.3", features = ["winit"] }
 winit = "0.25"
+winreg = "0.10.1"

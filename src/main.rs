@@ -5,6 +5,9 @@ use winit::{
 };
 
 use trayicon::{Icon, MenuBuilder, TrayIconBuilder};
+use winreg::RegKey;
+use winreg::enums::*;
+
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 enum Events {
@@ -26,6 +29,20 @@ impl AppIcon {
             Icon2 => Icon1,
         }
     }
+}
+
+fn daylight() {
+    // HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize /v AppsUseLightTheme /d 1 /t REG_DWORD /f
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let (personalize, _disp) = hkcu.create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize").unwrap();
+    personalize.set_value("AppsUseLightTheme", &1u32).unwrap();
+}
+
+fn nightshift() {
+    // HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize /v AppsUseLightTheme /d 0 /t REG_DWORD /f
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let (personalize, _disp) = hkcu.create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize").unwrap();
+    personalize.set_value("AppsUseLightTheme", &0u32).unwrap();
 }
 
 
@@ -82,11 +99,11 @@ fn main() {
                     app_icon.next();
                     match app_icon {
                         AppIcon::Icon1 => {
-                            dbg!(&app_icon);
+                            nightshift();
                             tray_icon.set_icon(&second_icon).unwrap();
                         },
                         AppIcon::Icon2 => {
-                            dbg!(&app_icon);
+                            daylight();
                             tray_icon.set_icon(&first_icon).unwrap();
                         },
                     }
