@@ -119,7 +119,6 @@ fn main() {
             Event::UserEvent(e) => match e {
                 Events::Exit => *control_flow = ControlFlow::Exit,
                 Events::ClickTrayIcon => {
-                    app_icon.next();
                     match app_icon {
                         AppIcon::Sun => {
                             set_nightshift();
@@ -130,6 +129,7 @@ fn main() {
                             tray_icon.set_icon(&sun_icon).unwrap();
                         },
                     }
+                    app_icon.next();
                 }
             },
             _ => (),
