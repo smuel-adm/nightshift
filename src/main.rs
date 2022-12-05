@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+//#![windows_subsystem = "windows"]
 
 use winit::{
     event::{Event, WindowEvent},
@@ -19,29 +19,42 @@ enum Events {
 
 #[derive(Debug)]
 enum AppIcon {
-    Icon1,
-    Icon2,
+    Sun,
+    Moon,
 }
 
 impl AppIcon {
     fn next(&mut self) {
         use AppIcon::*;
         *self = match *self {
-            Icon1 => Icon2,
-            Icon2 => Icon1,
+            Sun => Moon,
+            Moon => Sun,
         }
     }
 }
 
-fn daylight() {
-    // HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize /v AppsUseLightTheme /d 1 /t REG_DWORD /f
+fn is_nightshift() -> bool {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    match hkcu.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize") {
+        Ok(personalize) => match personalize.get_value("AppsUseLightTheme") {
+            Ok(value) => match value {
+                0u32 => true,
+                _ => false,
+            },
+            Err(_e) => false
+        },
+        Err(_e) => false,
+    }
+}
+
+
+fn set_daylight() {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let (personalize, _disp) = hkcu.create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize").unwrap();
     personalize.set_value("AppsUseLightTheme", &1u32).unwrap();
 }
 
-fn nightshift() {
-    // HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize /v AppsUseLightTheme /d 0 /t REG_DWORD /f
+fn set_nightshift() {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let (personalize, _disp) = hkcu.create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize").unwrap();
     personalize.set_value("AppsUseLightTheme", &0u32).unwrap();
@@ -57,19 +70,27 @@ fn main() {
     let proxy = event_loop.create_proxy();
 
     // default Icon
-    let mut app_icon = AppIcon::Icon2;
+    let mut app_icon = match is_nightshift() {
+        true => AppIcon::Moon,
+        false => AppIcon::Sun,
+    };
 
-    let icon = include_bytes!("../res/sun.ico");
-    let icon2 = include_bytes!("../res/moon.ico");
+    let icon_sun = include_bytes!("../res/sun.ico");
+    let icon_moon = include_bytes!("../res/moon.ico");
+    
+    let sun_icon = Icon::from_buffer(icon_sun, None, None).unwrap();
+    let moon_icon = Icon::from_buffer(icon_moon, None, None).unwrap();
 
-    let second_icon = Icon::from_buffer(icon2, None, None).unwrap();
-    let first_icon = Icon::from_buffer(icon, None, None).unwrap();
+    let icon = match is_nightshift() {
+        true => moon_icon.clone(),
+        false => sun_icon.clone(),
+    };
 
     // Needlessly complicated tray icon with all the whistles and bells
     let mut tray_icon = TrayIconBuilder::new()
         .sender_winit(proxy)
-        .icon_from_buffer(icon)
-        .tooltip("Nightshift")
+        .icon(icon)
+        .tooltip("Nightshift - Toggle Dark/ Light Mode")
         .on_click(Events::ClickTrayIcon)
         .menu(
             MenuBuilder::new()
@@ -100,13 +121,13 @@ fn main() {
                 Events::ClickTrayIcon => {
                     app_icon.next();
                     match app_icon {
-                        AppIcon::Icon1 => {
-                            nightshift();
-                            tray_icon.set_icon(&second_icon).unwrap();
+                        AppIcon::Sun => {
+                            set_nightshift();
+                            tray_icon.set_icon(&moon_icon).unwrap();
                         },
-                        AppIcon::Icon2 => {
-                            daylight();
-                            tray_icon.set_icon(&first_icon).unwrap();
+                        AppIcon::Moon => {
+                            set_daylight();
+                            tray_icon.set_icon(&sun_icon).unwrap();
                         },
                     }
                 }
