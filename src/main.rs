@@ -7,9 +7,8 @@ use winit::{
 };
 
 use trayicon::{Icon, MenuBuilder, TrayIconBuilder};
-use winreg::RegKey;
 use winreg::enums::*;
-
+use winreg::RegKey;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 enum Events {
@@ -37,29 +36,28 @@ fn is_nightshift() -> bool {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     match hkcu.open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize") {
         Ok(personalize) => match personalize.get_value("AppsUseLightTheme") {
-            Ok(value) => match value {
-                0u32 => true,
-                _ => false,
-            },
-            Err(_e) => false
+            Ok(value) => matches!(value, 0u32),
+            Err(_e) => false,
         },
         Err(_e) => false,
     }
 }
 
-
 fn set_daylight() {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let (personalize, _disp) = hkcu.create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize").unwrap();
+    let (personalize, _disp) = hkcu
+        .create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize")
+        .unwrap();
     personalize.set_value("AppsUseLightTheme", &1u32).unwrap();
 }
 
 fn set_nightshift() {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let (personalize, _disp) = hkcu.create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize").unwrap();
+    let (personalize, _disp) = hkcu
+        .create_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize")
+        .unwrap();
     personalize.set_value("AppsUseLightTheme", &0u32).unwrap();
 }
-
 
 fn main() {
     let event_loop = EventLoop::<Events>::with_user_event();
@@ -77,7 +75,7 @@ fn main() {
 
     let icon_sun = include_bytes!("../res/sun.ico");
     let icon_moon = include_bytes!("../res/moon.ico");
-    
+
     let sun_icon = Icon::from_buffer(icon_sun, None, None).unwrap();
     let moon_icon = Icon::from_buffer(icon_moon, None, None).unwrap();
 
@@ -92,10 +90,7 @@ fn main() {
         .icon(icon)
         .tooltip("Nightshift - Toggle Dark/ Light Mode")
         .on_click(Events::ClickTrayIcon)
-        .menu(
-            MenuBuilder::new()
-                .item("E&xit", Events::Exit),
-        )
+        .menu(MenuBuilder::new().item("E&xit", Events::Exit))
         .build()
         .unwrap();
 
@@ -123,11 +118,11 @@ fn main() {
                         AppIcon::Sun => {
                             set_nightshift();
                             tray_icon.set_icon(&moon_icon).unwrap();
-                        },
+                        }
                         AppIcon::Moon => {
                             set_daylight();
                             tray_icon.set_icon(&sun_icon).unwrap();
-                        },
+                        }
                     }
                     app_icon.next();
                 }
