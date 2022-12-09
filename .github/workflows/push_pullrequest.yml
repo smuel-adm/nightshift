@@ -4,27 +4,36 @@ name: Push Pull Request
 
 jobs:
   check:
-    name: Check
-    runs-on: ubuntu-latest
+    name: nightshift ${{ matrix.target }}
+    runs-on: windows-latest
     strategy:
+      max-parallel: 2
       fail-fast: false
       matrix:
-        include:
-          - target: x86_64-pc-windows-gnu
+        target: [
+          i686-pc-windows-gnu,
+          i686-pc-windows-msvc,
+          x86_64-pc-windows-gnu,
+          x86_64-pc-windows-msvc,
+        ]
+
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - name: Install Rustup using win.rustup.rs
+        run: |
+          # Disable the download progress bar which can cause perf issues
+          $ProgressPreference = "SilentlyContinue"
+          Invoke-WebRequest https://win.rustup.rs/ -OutFile rustup-init.exe
+          .\rustup-init.exe -y --default-host=x86_64-pc-windows-msvc --default-toolchain=none
+          del rustup-init.exe
+          rustup target add ${{ matrix.target }}
+        shell: powershell
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
-        continue-on-error: true  # WARNING: only for this example, remove it!
+        continue-on-error: false
         with:
           RUSTTARGET: ${{ matrix.target }}
           command: check
