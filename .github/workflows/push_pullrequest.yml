@@ -1,10 +1,10 @@
-on: [push, pull_request]
-
 name: Push Pull Request
+
+on: [push, pull_request]
 
 jobs:
   check:
-    name: nightshift ${{ matrix.target }}
+    name: nightshift-${{ matrix.target }}
     runs-on: windows-latest
     strategy:
       max-parallel: 2
@@ -29,36 +29,36 @@ jobs:
           .\rustup-init.exe -y --default-host=x86_64-pc-windows-msvc --default-toolchain=none
           del rustup-init.exe
           rustup target add ${{ matrix.target }}
+          rustup component add rustfmt
+          rustup component add clippy
         shell: powershell
 
       - name: Run cargo check
         uses: actions-rs/cargo@v1
         continue-on-error: false
         with:
-          RUSTTARGET: ${{ matrix.target }}
           command: check
 
-#  test:
-#    name: Test Suite
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout sources
-#        uses: actions/checkout@v2
-#
-#      - name: Install stable toolchain
-#        uses: actions-rs/toolchain@v1
-#        with:
-#          profile: minimal
-#          toolchain: stable
-#          override: true
-#
-#      - name: Run cargo test
-#        uses: actions-rs/cargo@v1
-#        continue-on-error: true  # WARNING: only for this example, remove it!
-#        with:
-#          RUSTTARGET: ${{ matrix.target }}
-#          command: test
-#
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: test
+
+      - name: Run cargo fmt
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run cargo clippy
+        uses: actions-rs/cargo@v1
+        continue-on-error: false
+        with:
+          command: clippy
+          args: -- -D warnings
+
 #  lints:
 #    name: Lints
 #    runs-on: ubuntu-latest
