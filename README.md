@@ -13,6 +13,13 @@ Just grab the latest [release](https://github.com/smuel-adm/renorm/releases) zip
 This application needs no parameters, just double click on the .exe file to start the program.
 ![](res/usage%20-%20app%20icon.png)
 
+## Create Autostart
+
+```powershell
+cp target\release\nightshift.exe $env:APPDATA'\Microsoft\Windows\Start Menu\Programs\Startup\'
+```
+
+
 # License
 
 **GPL-3.0-or-later**
