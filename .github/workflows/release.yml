@@ -13,8 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - target: i686-pc-windows-msvc
-            archive: zip
           - target: x86_64-pc-windows-msvc
             archive: zip
     steps:
