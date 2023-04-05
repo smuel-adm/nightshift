@@ -12,16 +12,15 @@ jobs:
       max-parallel: 2
       fail-fast: false
       matrix:
-        target: [
-          i686-pc-windows-msvc,
-          x86_64-pc-windows-msvc,
-        ]
-        archive: zip
-
+        include:
+          - target: i686-pc-windows-msvc
+            archive: zip
+          - target: x86_64-pc-windows-msvc
+            archive: zip
     steps:
       - uses: actions/checkout@master
       - name: Compile and release
-        uses: rust-build/rust-build.action@v1.4.0
+        uses: rust-build/rust-build.action@v1.4.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
