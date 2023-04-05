@@ -15,3 +15,9 @@ magick .\sun.png -define icon:auto-resize=16,32,48,256 -compress zip sun.ico
 magick .\moon.png -define icon:auto-resize=16,32,48,256 -compress zip moon.ico
 ```
 
+
+## Clear Windows icon cache
+
+```
+ie4uinit.exe -show
+```
